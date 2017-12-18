@@ -38,20 +38,32 @@
 #include "ofUtils.h"
 #include "ofGraphics.h"
 
+#include <string>
+#include <locale.h> 
 
+
+std::wstring StringToWstring(const std::string str)
+{
+	auto ba = ofxTrueTypeFontUC::convToUTF32(str);
+	wstring out;
+	for (int i = 0; i < ba.size(); i++) {
+		out.push_back(wchar_t(ba[i]));
+	}
+	return out;
+}
 
 //===========================================================
 #ifdef TARGET_WIN32
 
-static const basic_string<unsigned int> convToUTF32(const string &src) {
+ basic_string<unsigned int> ofxTrueTypeFontUC::convToUTF32(const string &src) {
   if (src.size() == 0) {
     return basic_string<unsigned int> ();
   }
   
   // convert XXX -> UTF-16
-  const int n_size = ::MultiByteToWideChar(CP_ACP, 0, src.c_str(), -1, NULL, 0);
+  const int n_size = ::MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, NULL, 0);
   vector<wchar_t> buffUTF16(n_size);
-  ::MultiByteToWideChar(CP_ACP, 0, src.c_str(), -1, &buffUTF16[0], n_size);
+  ::MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, &buffUTF16[0], n_size);
   
   // convert UTF-16 -> UTF-8
   const int utf8str_size = ::WideCharToMultiByte(CP_UTF8, 0, &buffUTF16[0], -1, NULL, 0, NULL, 0);
@@ -62,7 +74,20 @@ static const basic_string<unsigned int> convToUTF32(const string &src) {
   std::wstring_convert<std::codecvt_utf8<unsigned int>, unsigned int> convert32;
   return convert32.from_bytes(&buffUTF8[0]);
 }
+ basic_string<unsigned int> ofxTrueTypeFontUC::convToUTF32(const wstring &src) {
+	 if (src.size() == 0) {
+		 return basic_string<unsigned int>();
+	 }
 
+	 // convert UTF-16 -> UTF-8
+	 const int utf8str_size = ::WideCharToMultiByte(CP_UTF8, 0, src.c_str(), -1, NULL, 0, NULL, 0);
+	 vector<char> buffUTF8(utf8str_size);
+	 ::WideCharToMultiByte(CP_UTF8, 0, src.c_str(), -1, &buffUTF8[0], utf8str_size, NULL, 0);
+
+	 // convert UTF-8 -> UTF-32 (UCS-4)
+	 std::wstring_convert<std::codecvt_utf8<unsigned int>, unsigned int> convert32;
+	 return convert32.from_bytes(&buffUTF8[0]);
+ }
 #else
 
 static const basic_string<unsigned int> convToUTF32(const string &utf8_src){
@@ -848,7 +873,7 @@ void ofxTrueTypeFontUC::Impl::drawCharAsShape(int c, float x, float y) {
   charRef.draw(x,y);
 }
 
-ofRectangle ofxTrueTypeFontUC::getStringBoundingBox(const string &src, float x, float y){
+ofRectangle ofxTrueTypeFontUC::getStringBoundingBox(const wstring &src, float x, float y){
   ofRectangle myRect;
   
   if (!mImpl->bLoadedOk_) {
@@ -935,6 +960,11 @@ ofRectangle ofxTrueTypeFontUC::getStringBoundingBox(const string &src, float x, 
   return myRect;
 }
 
+ofRectangle ofxTrueTypeFontUC::getStringBoundingBox(const string & str, float x, float y)
+{
+	return getStringBoundingBox(StringToWstring(str), x, y);
+}
+
 float ofxTrueTypeFontUC::stringWidth(const string &str) {
     ofRectangle rect = getStringBoundingBox(str, 0,0);
     return rect.width;
@@ -945,10 +975,18 @@ float ofxTrueTypeFontUC::stringHeight(const string &str) {
     return rect.height;
 }
 
+float ofxTrueTypeFontUC::stringWidth(const wstring &str) {
+	ofRectangle rect = getStringBoundingBox(str, 0, 0);
+	return rect.width;
+}
 
+float ofxTrueTypeFontUC::stringHeight(const wstring &str) {
+	ofRectangle rect = getStringBoundingBox(str, 0, 0);
+	return rect.height;
+}
 
 //=====================================================================
-void ofxTrueTypeFontUC::drawString(const string &src, float x, float y){
+void ofxTrueTypeFontUC::drawString(const wstring &src, float x, float y){
   if (!mImpl->bLoadedOk_) {
     ofLog(OF_LOG_ERROR,"ofxTrueTypeFontUC::drawString - Error : font not allocated -- line %d in %s", __LINE__,__FILE__);
     return;
@@ -983,6 +1021,11 @@ void ofxTrueTypeFontUC::drawString(const string &src, float x, float y){
       }
     index++;
   }
+}
+
+void ofxTrueTypeFontUC::drawString(const string & str, float x, float y)
+{
+	drawString(StringToWstring(str), x, y);
 }
 
 //=====================================================================

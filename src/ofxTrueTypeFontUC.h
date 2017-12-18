@@ -10,13 +10,14 @@ const static string OF_TTFUC_SERIF = "serif";
 const static string OF_TTFUC_MONO = "monospace";
 
 //--------------------------------------------------
-
+std::wstring StringToWstring(const std::string str);
 class ofxTrueTypeFontUC{
   
 public:
   ofxTrueTypeFontUC();
   virtual ~ofxTrueTypeFontUC();
-  
+  static basic_string<unsigned int> convToUTF32(const string &src);
+  static basic_string<unsigned int> convToUTF32(const wstring &src);
   //set the default dpi for all typefaces.
   static void setGlobalDpi(int newDpi);
   
@@ -27,11 +28,12 @@ public:
   void unloadFont();
   
   void drawString(const string &str, float x, float y);
+  void drawString(const wstring &str, float x, float y);
   void drawStringAsShapes(const string &str, float x, float y);
   
   vector<ofPath> getStringAsPoints(const string &str, bool vflip=ofIsVFlipped());
+  ofRectangle getStringBoundingBox(const wstring &str, float x, float y);
   ofRectangle getStringBoundingBox(const string &str, float x, float y);
-  
   bool isLoaded();
   bool isAntiAliased();
   
@@ -48,6 +50,8 @@ public:
   
   float stringWidth(const string &str);
   float stringHeight(const string &str);
+  float stringWidth(const wstring &str);
+  float stringHeight(const wstring &str);
   // get the num of loaded chars
   int getNumCharacters();
   int	getLoadedCharactersCount();
