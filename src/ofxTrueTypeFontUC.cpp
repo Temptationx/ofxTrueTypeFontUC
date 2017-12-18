@@ -89,14 +89,14 @@ std::wstring StringToWstring(const std::string str)
 	 return convert32.from_bytes(&buffUTF8[0]);
  }
 #else
-static const basic_string<unsigned int> convToUTF32(const wstring &utf8_src) {
+basic_string<unsigned int> ofxTrueTypeFontUC::convToUTF32(const wstring &utf8_src) {
 	basic_string<unsigned int> dst;
 	for (int i = 0; i < utf8_src.size(); i++) {
 		dst.push_back((unsigned int)utf8_src[i]);
 	}
 	return dst;
 }
-static const basic_string<unsigned int> convToUTF32(const string &utf8_src){
+basic_string<unsigned int> ofxTrueTypeFontUC::convToUTF32(const string &utf8_src){
   basic_string<unsigned int> dst;
   
   // convert UTF-8 -> UTF-32 (UCS-4)
